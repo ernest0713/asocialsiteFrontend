@@ -7,6 +7,7 @@ const routes = [
   {
     path: '/',
     component: () => import('../components/Home.vue'),
+    redirect: '/wall',
     meta: {
       requiresAuth: true
     },

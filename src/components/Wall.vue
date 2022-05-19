@@ -4,10 +4,14 @@
     <div class="row">
       <div class="col-md-4 pr-md-1 mb-md-2 pr-3 mb-3">
         <select
+          @change="getdata()"
+          v-model="sort"
           class="px-3 py-2 w-100"
           style="height: 3rem; border: 2px solid #000400"
         >
-          <option selected>最新貼文</option>
+          <option disabled value="">--排序--</option>
+          <option value="-1">最新貼文</option>
+          <option value="1">從舊到新</option>
         </select>
       </div>
       <div class="col-md-8">
@@ -50,26 +54,25 @@
         <div class="d-flex align-items-center mb-3">
           <img
             class="mr-3 rounded-circle"
-            :src="item.userPhoto"
-            alt="userImg"
+            :src="item.user.userPhoto"
+            alt="userPhoto"
             style="width: 50px; height: 50px"
           />
           <div class="d-flex flex-column mt-2">
-            <a href="#" class="mb-0 fw-bold">{{ item.userName }}</a>
+            <a href="#" class="mb-0 fw-bold">{{ item.user.userName }}</a>
             <small class="text-muted">{{
-              item.datetime_pub | moment('YYYY-MM-DD h:mm a')
+              item.createAt | moment('YYYY-MM-DD h:mm a')
             }}</small>
           </div>
         </div>
-        <p>{{ item.content }}.&lt;</p>
+        <p>{{ item.content }}</p>
         <img
           :src="item.image"
-          alt="photo1"
           class="img-fluid rounded"
           style="
             border: 2px solid #000400;
             height: 157px;
-            object-fit: cover;
+            object-fit: contain;
             border-radirus: 8px;
           "
         />
@@ -81,7 +84,7 @@
           <div class="d-flex">
             <img
               class="mr-3 rounded-circle"
-              :src="item.userPhoto"
+              :src="item.user.userPhoto"
               alt="userImg"
               style="width: 45px; height: 45px"
             />
@@ -94,7 +97,7 @@
                 placeholder="留言..."
                 style="height: 40px; border: 2px solid #000400"
               />
-              <div class="input-group-append" @click="sendCommentta()">
+              <div class="input-group-append" @click="sendComment()">
                 <button
                   class="btn btn-primary py-0 px-5"
                   type="button"
@@ -148,32 +151,33 @@
 </template>
 
 <script>
+
 export default {
   data () {
     return {
       postsData: [],
       keyword: '',
       hasComment: false,
-      isLoading: false
+      isLoading: false,
+      sort: ''
     }
   },
   methods: {
     getdata () {
-      this.isLoading = true
-      const filter = {
-        keyword: this.keyword, // 搜尋關鍵字
-        sortby: 'datetime_pub', // 本次只提供最新貼文排序
-        limit: '', // 每頁幾筆，本次可不提供或強制default
-        page: '' // 第幾頁開始，本次可不提供或強制default 或者可改 offset Lastid 之類
-      }
+      const vm = this
+      vm.isLoading = true
+      const sortby = vm.sort
+      const keyword = vm.keyword
       // console.log(msg, filter)
-      const api = 'https://safe-brushlands-13562.herokuapp.com/posts/search'
+      const api = `https://desolate-sands-79385.herokuapp.com/posts?sort=${sortby}&keyword=${keyword}`
       this.$http
-        .post(api, filter)
+        .get(api)
         .then((res) => {
-          this.isLoading = false
-          this.postsData = res.data.payload.posts
-          // console.log(this.postsData)
+          vm.isLoading = false
+          if (res.data.success) {
+            vm.postsData = res.data.data
+            console.log(res)
+          }
         })
         .catch((e) => {
           this.isLoading = false
